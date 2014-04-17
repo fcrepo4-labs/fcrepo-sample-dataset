@@ -7,7 +7,9 @@
 	  <sv:value>Example in Fedora sample dataset</sv:value>
 	  <sv:value>The purpose of creating the sample datase is to demostrate the features in Fedora Futures</sv:value>
     </sv:property>
-    <sv:property sv:name="rdf:type" sv:type="URI" sv:multiple="true"><sv:value>http://fedora.info/definitions/v4/indexing#indexable</sv:value></sv:property>
+    <sv:property sv:name="rdf:type" sv:type="URI" sv:multiple="true">
+      <sv:value>http://fedora.info/definitions/v4/indexing#indexable</sv:value>
+    </sv:property>
     <sv:node sv:name="10in">
       <sv:property sv:name="jcr:primaryType" sv:type="Name">
         <sv:value>nt:file</sv:value>
