@@ -4,7 +4,8 @@ To import the sample dataset:
 
 1. Download the fcrepo-sample-dataset tool: git clone git@github.com:futures/fcrepo-sample-dataset.git
 2. Change to the fcrepo-sample-dataset directory: cd fcrepo-sample-dataset
-3. Run: mvn -Dfcrepo.url=&lt;repo.url&gt; exec:java | mvn exec:java
+3. Build: mvn clean install
+4. Run: mvn -Dfcrepo.url=&lt;repo.url&gt; exec:java
 
 The whole dataset will be loaded into the Fedora repository <repo.url>, or view the dataset from http://localhost:8080/rest by default. 
 
