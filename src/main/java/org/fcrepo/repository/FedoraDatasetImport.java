@@ -22,6 +22,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.FileEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import static java.lang.Integer.MAX_VALUE;
@@ -48,8 +49,16 @@ public class FedoraDatasetImport {
         final HttpClient httpClient = HttpClientBuilder.create().setMaxConnPerRoute(MAX_VALUE)
             .setMaxConnTotal(MAX_VALUE).build();
 
+        LOGGER.info("fcrepoUrl:" + fcrepoUrl);
+        LOGGER.info("Dataset dir:" + new File(FedoraDatasetImport.class.getResource(dataDir).getFile()).getAbsolutePath());
+
+        try {
+            importTransform(httpClient, fcrepoUrl);
+        } catch (final Exception e) {
+            LOGGER.error("Error importing transform", e);
+        }
+
         final File[] files = new File(FedoraDatasetImport.class.getResource(dataDir).getFile()).listFiles();
-        LOGGER.info("Dataset dir: " + new File(dataDir).getAbsolutePath());
         for(int i=0; i<files.length; i++){
 
             try {
@@ -76,6 +85,35 @@ public class FedoraDatasetImport {
             post = new HttpPost(repoUrl + "/fcr:import");
             post.setEntity(new FileEntity(src));
             res = httpClient.execute(post);
+            LOGGER.debug("URL:" + repoUrl + "/fcr:import");
+            LOGGER.debug("Response:" + res.toString());
+            return res.getStatusLine().getStatusCode() == CREATED.getStatusCode();
+        } catch (final Exception e) {
+            if (res != null) {
+                LOGGER.error(EntityUtils.toString(res.getEntity()));
+            }
+            throw e;
+        } finally {
+            post.releaseConnection();
+        }
+    }
+    private static boolean importTransform(final HttpClient httpClient, String repoUrl)
+            throws Exception {
+        HttpPost post = null;
+        HttpResponse res = null;
+        repoUrl += "/fedora:system/fedora:transform/fedora:ldpath/default/nt:base/fcr:content";
+        final String entity = "@prefix fcrepo : <http://fedora.info/definitions/v4/repository#>\n" +
+                "id      = . :: xsd:string ;\n" +
+                "title = dc:title :: xsd:string ;\n" +
+                "resourcename = fcrepo:uuid :: xsd:string ;";
+        LOGGER.debug("Transform body:" + entity);
+        try {
+
+            post = new HttpPost(repoUrl);
+            post.setEntity(new StringEntity(entity));
+            res = httpClient.execute(post);
+            LOGGER.debug("URL:" + repoUrl + "/fcr:import");
+            LOGGER.debug("Response:" + res.toString());
             return res.getStatusLine().getStatusCode() == CREATED.getStatusCode();
         } catch (final Exception e) {
             if (res != null) {
