@@ -6,7 +6,7 @@
   <artifactId>fcrepo-sample-dataset</artifactId>
   <name>${project.artifactId}</name>
   <description>Fedora Sample Dataset</description>
-  <version>4.0.0-beta-03</version>
+  <version>4.0.0-beta-04-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <properties>
