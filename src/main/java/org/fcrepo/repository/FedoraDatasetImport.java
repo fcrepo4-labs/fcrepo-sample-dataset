@@ -17,6 +17,8 @@
 package org.fcrepo.repository;
 
 import java.io.File;
+
+import org.apache.http.client.methods.HttpPut;
 import org.slf4j.Logger;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -99,9 +101,9 @@ public class FedoraDatasetImport {
     }
     private static boolean importTransform(final HttpClient httpClient, String repoUrl)
             throws Exception {
-        HttpPost post = null;
+        HttpPut put = null;
         HttpResponse res = null;
-        repoUrl += "/fedora:system/fedora:transform/fedora:ldpath/default/nt:base/fcr:content";
+        repoUrl += "/fedora:system/fedora:transform/fedora:ldpath/default/nt:base";
         final String entity = "@prefix fcrepo : <http://fedora.info/definitions/v4/repository#>\n" +
                 "id      = . :: xsd:string ;\n" +
                 "title = dc:title :: xsd:string ;\n" +
@@ -109,9 +111,9 @@ public class FedoraDatasetImport {
         LOGGER.debug("Transform body:" + entity);
         try {
 
-            post = new HttpPost(repoUrl);
-            post.setEntity(new StringEntity(entity));
-            res = httpClient.execute(post);
+            put = new HttpPut(repoUrl);
+            put.setEntity(new StringEntity(entity));
+            res = httpClient.execute(put);
             LOGGER.debug("URL:" + repoUrl + "/fcr:import");
             LOGGER.debug("Response:" + res.toString());
             return res.getStatusLine().getStatusCode() == CREATED.getStatusCode();
@@ -121,7 +123,7 @@ public class FedoraDatasetImport {
             }
             throw e;
         } finally {
-            post.releaseConnection();
+            put.releaseConnection();
         }
     }
 }

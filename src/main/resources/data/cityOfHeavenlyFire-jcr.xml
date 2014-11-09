@@ -32,7 +32,7 @@
     </sv:property>
     <sv:property sv:name="jcr:mixinTypes" sv:type="Name" sv:multiple="true">
       <sv:value>fedora:Resource</sv:value>
-      <sv:value>fedora:NonRdfResourceDescription</sv:value>
+      <sv:value>fedora:NonRdfSourceDescription</sv:value>
     </sv:property>
     <sv:property sv:name="dc:title" sv:type="String" sv:multiple="true">
       <sv:value>Cover</sv:value>
