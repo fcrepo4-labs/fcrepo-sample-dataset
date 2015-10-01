@@ -20,25 +20,27 @@ import java.io.File;
 
 import org.apache.http.client.methods.HttpPut;
 import org.slf4j.Logger;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.util.EntityUtils;
 import static java.lang.Integer.MAX_VALUE;
 import static org.slf4j.LoggerFactory.getLogger;
 import static javax.ws.rs.core.Response.Status.CREATED;
 
 /**
- * Tool to load the sample dataset into the Fedora repository
- * 
- * Arguments: args[0]: Fedora repository, default http://localhost:8080 args[1]:
- * resource dataset, default resources/data
- * 
+ * Tool to load the sample dataset into the Fedora repository Arguments: args[0]: Fedora repository, default
+ * http://localhost:8080 args[1]: resource dataset, default resources/data args[2]: username, default null args[3]:
+ * password, default null
+ *
  * @author lsitu
- * @date Apr 14, 2014
+ * @author whikloj
+ * @since Apr 14, 2014
  */
 public class FedoraDatasetImport {
     private static final Logger LOGGER = getLogger(FedoraDatasetImport.class);
@@ -47,15 +49,19 @@ public class FedoraDatasetImport {
 
         final String fcrepoUrl = System.getProperty("fcrepo.url", args[0]);
         final String dataDir = System.getProperty("dataset.resource", args[1]);
+        final String username = System.getProperty("fcrepo.authUser", args[2]);
+        final String password = System.getProperty("fcrepo.authPassword", args[3]);
 
         final HttpClient httpClient = HttpClientBuilder.create().setMaxConnPerRoute(MAX_VALUE)
             .setMaxConnTotal(MAX_VALUE).build();
 
         LOGGER.info("fcrepoUrl:" + fcrepoUrl);
         LOGGER.info("Dataset dir:" + new File(FedoraDatasetImport.class.getResource(dataDir).getFile()).getAbsolutePath());
+        LOGGER.info("fcrepo.authUser: " + username);
+        LOGGER.info("fcrepo.authPassword: " + password);
 
         try {
-            importTransform(httpClient, fcrepoUrl);
+            importTransform(httpClient, fcrepoUrl, username, password);
         } catch (final Exception e) {
             LOGGER.error("Error importing transform", e);
         }
@@ -64,7 +70,7 @@ public class FedoraDatasetImport {
         for(int i=0; i<files.length; i++){
 
             try {
-                final boolean successful = importData(httpClient, fcrepoUrl, files[i]);
+                final boolean successful = importData(httpClient, fcrepoUrl, files[i], username, password);
                 if (successful) {
                     LOGGER.info("Imported data file: " + files[i].getAbsolutePath());
                 } else {
@@ -76,8 +82,8 @@ public class FedoraDatasetImport {
         }
     }
 
-    private static boolean importData(final HttpClient httpClient, final String repoUrl, final File src)
-        throws Exception {
+    private static boolean importData(final HttpClient httpClient, final String repoUrl, final File src, final String username, final String password)
+            throws Exception {
         LOGGER.debug("Importing Data file: " + src.getAbsolutePath());
         HttpPost post = null;
         HttpResponse res = null;
@@ -85,6 +91,9 @@ public class FedoraDatasetImport {
         try {
 
             post = new HttpPost(repoUrl + "/fcr:import");
+            if (username != null && password != null) {
+                setAuth(post, username, password);
+            }
             post.setEntity(new FileEntity(src));
             res = httpClient.execute(post);
             LOGGER.debug("URL:" + repoUrl + "/fcr:import");
@@ -99,7 +108,8 @@ public class FedoraDatasetImport {
             post.releaseConnection();
         }
     }
-    private static boolean importTransform(final HttpClient httpClient, String repoUrl)
+
+    private static boolean importTransform(final HttpClient httpClient, String repoUrl, final String username, final String password)
             throws Exception {
         HttpPut put = null;
         HttpResponse res = null;
@@ -112,6 +122,9 @@ public class FedoraDatasetImport {
         try {
 
             put = new HttpPut(repoUrl);
+            if (username != null && password != null) {
+                setAuth(put, username, password);
+            }
             put.setEntity(new StringEntity(entity));
             res = httpClient.execute(put);
             LOGGER.debug("URL:" + repoUrl + "/fcr:import");
@@ -125,5 +138,12 @@ public class FedoraDatasetImport {
         } finally {
             put.releaseConnection();
         }
+    }
+
+    private static void setAuth(final AbstractHttpMessage method, final String username, final String password) {
+        final String creds = username + ":" + password;
+        final String encCreds = new String(Base64.encodeBase64(creds.getBytes()));
+        final String basic = "Basic " + encCreds;
+        method.setHeader("Authorization", basic);
     }
 }
