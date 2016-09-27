@@ -13,3 +13,7 @@ These datasets were created by the Phase 1 Import/Export sprint team for testing
 ## Resources
 
 * https://wiki.duraspace.org/display/FEDORA4x/RESTful+HTTP+API+-+Backup+and+Restore
+
+## Credits
+
+* http://swat.cse.lehigh.edu/projects/lubm/
